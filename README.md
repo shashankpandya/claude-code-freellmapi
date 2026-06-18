@@ -1,142 +1,127 @@
-# Claude Code with FreeLLMAPI + LiteLLM Compatibility Bridge
+# Claude Code with FreeLLMAPI + LiteLLM
 
-Run Claude Code using FreeLLMAPI + LiteLLM with Anthropic-compatible routing, model translation, troubleshooting guides, and Windows setup instructions.
-
-[Quick Start](#quick-start) | [Architecture](#architecture-overview) | [Troubleshooting](#troubleshooting) | [Validation](#validation) | [Setup Showcase](docs/setup-showcase.md)
+Run Claude Code using FreeLLMAPI + LiteLLM as a compatibility bridge. This enables Claude Code to work with any OpenAI-compatible API, including local models.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Issues](https://img.shields.io/github/issues/shashankpandya/claude-code-freellmapi.svg)](https://github.com/shashankpandya/claude-code-freellmapi/issues)
-[![GitHub Stars](https://img.shields.io/github/stars/shashankpandya/claude-code-freellmapi.svg)](https://github.com/shashankpandya/claude-code-freellmapi/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/shashankpandya/claude-code-freellmapi.svg)](https://github.com/shashankpandya/claude-code-freellmapi/network)
 
-## Why This Repository Exists
+## 🚀 Quick Start
 
-Claude Code expects Anthropic-style behavior and request semantics.
+Get running in 5 minutes:
 
-FreeLLMAPI is OpenAI-compatible, so it cannot be used directly without translation.
+```powershell
+# 1. Clone the repository
+git clone https://github.com/shashankpandya/claude-code-freellmapi.git
+cd claude-code-freellmapi
 
-LiteLLM acts as the translation layer between the Anthropic-style client and the OpenAI-compatible gateway.
+# 2. Start all services
+.\examples\combined-startup.ps1
 
-This repository documents the exact working bridge so the full setup can be reproduced reliably instead of guessed from a generic setup guide.
-
-## Executive Summary
-
-This repository provides a complete guide for setting up Claude Code with FreeLLMAPI and LiteLLM as a compatibility bridge. It solves compatibility issues between Claude Code and different providers by implementing a gateway architecture.
-
-## Architecture Overview
-
-Visual overview:
-
-![Claude Code Gateway architecture diagram](assets/diagrams/Clude-code-gateway.png)
-
-```mermaid
-graph TD
-    A[Claude Code] -->|HTTP Requests| B[LiteLLM]
-    B -->|Translated Requests| C[FreeLLMAPI]
-    C -->|Provider Pool| D[Local Models]
-    C -->|Provider Pool| E[Remote Models]
+# 3. Test your setup
+.\examples\test-prompts.ps1
 ```
 
-The architecture consists of:
+**That's it!** Claude Code is now running through FreeLLMAPI and LiteLLM.
 
-1. **Claude Code**: The main application that interacts with the user
-2. **LiteLLM**: Acts as a compatibility bridge, translating requests from Claude Code to a format that FreeLLMAPI can understand
-3. **FreeLLMAPI**: Provides an OpenAI-style chat completions API, forwarding requests to a pool of providers
-4. **Provider Pool**: A collection of local and remote models that can be used to fulfill requests
+## 📚 Documentation
 
-## Quick Start
+| Topic | Guide |
+|-------|-------|
+| **New to this?** | [Quick Start Guide](docs/getting-started/quickstart.md) |
+| **Windows Setup** | [Windows Guide](docs/setup/windows.md) |
+| **Linux Setup** | [Linux Guide](docs/setup/linux.md) |
+| **macOS Setup** | [macOS Guide](docs/setup/macos.md) |
+| **Configuration** | [Config Guide](docs/configuration/README.md) |
+| **Troubleshooting** | [Troubleshooting](docs/troubleshooting/README.md) |
 
-1. **Install Prerequisites**:
-   - Python 3.8+
-   - Node.js 16+
-   - Git
+### Full Documentation Index
 
-2. **Clone the Repository**:
+```
+docs/
+├── getting-started/      # Quick start, prerequisites
+├── setup/                # Platform-specific guides
+├── concepts/             # Architecture, model routing
+├── configuration/        # Detailed configuration
+├── troubleshooting/      # Common issues, FAQ
+├── validation/           # Testing your setup
+└── support/              # Getting help
+```
 
-   ```powershell
-   git clone https://github.com/shashankpandya/claude-code-freellmapi.git
-   cd claude-code-freellmapi
-   ```
+## 🏗️ Architecture
 
-3. **Start Services**:
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     CLAUDE CODE                                  │
+│                    (Anthropic API)                              │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                         LITELLM                                 │
+│              (Compatibility Bridge :4000)                      │
+│                                                                 │
+│  • Translates Anthropic → OpenAI format                        │
+│  • Maps model names (claude-opus-4-8 → gpt-4o)               │
+│  • Drops unsupported parameters                                │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       FREELLMAPI                                │
+│                    (API Gateway :8082)                          │
+│                                                                 │
+│  • OpenAI-compatible API                                        │
+│  • Provider pool management                                    │
+│  • Load balancing                                              │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+         ┌───────────────────┼───────────────────┐
+         ▼                   ▼                   ▼
+   ┌───────────┐      ┌───────────┐      ┌───────────┐
+   │ LM Studio │      │  Ollama   │      │  OpenAI   │
+   │  :8000    │      │  :11434   │      │   API     │
+   │ (Local)   │      │ (Local)   │      │ (Remote)  │
+   └───────────┘      └───────────┘      └───────────┘
+```
 
-   ```powershell
-   .\examples\combined-startup.ps1
-   ```
+## ❓ Why This Project?
 
-4. **Run Test Prompts**:
-   ```powershell
-   .\examples\test-prompts.ps1
-   ```
+Claude Code expects **Anthropic API format**, but many providers only support **OpenAI format**. This project uses LiteLLM as a translation layer to bridge the gap.
 
-For detailed instructions, see the [Full Installation Guide](#full-installation-guide).
+## 🔧 Key Features
 
-## Full Installation Guide
+- ✅ Run Claude Code with local models (Ollama, LM Studio)
+- ✅ Use OpenAI-compatible APIs as backends
+- ✅ Model mapping and routing
+- ✅ Platform guides for Windows, Linux, macOS
+- ✅ Comprehensive troubleshooting
 
-1. **Install Prerequisites**:
-   - Install Python and Node.js
-   - Install Git
+## 📖 Documentation Highlights
 
-2. **Clone the Repository**:
+| What You Need | Where to Go |
+|--------------|-------------|
+| Step-by-step Windows setup | [Windows Guide](docs/setup/windows.md) |
+| Understand how it works | [Architecture](docs/concepts/architecture.md) |
+| Configure model mappings | [Model Routing](docs/concepts/model-routing.md) |
+| Fix common errors | [Troubleshooting](docs/troubleshooting/common-issues.md) |
+| Set up local models | [Provider Setup](docs/configuration/providers.md) |
 
-   ```powershell
-   git clone https://github.com/shashankpandya/claude-code-freellmapi.git
-   cd claude-code-freellmapi
-   ```
+## 🆘 Need Help?
 
-3. **Install Component Dependencies**:
+1. **Check the docs**: Most questions are answered in [docs/](docs/README.md)
+2. **Common issues**: See [Troubleshooting](docs/troubleshooting/common-issues.md)
+3. **FAQ**: [Frequently Asked Questions](docs/troubleshooting/faq.md)
+4. **GitHub Issues**: [Open an issue](https://github.com/shashankpandya/claude-code-freellmapi/issues)
 
-   Install dependencies per component rather than from the repository root. Examples:
-   - FreeLLMAPI (if running locally): `cd /path/to/freellmapi && npm install`
-   - LiteLLM (if running locally): `cd /path/to/litellm && pip install -r requirements.txt`
+## 🤝 Community
 
-   See the component guides for details: [FREELLMAPI_CONFIG.md](FREELLMAPI_CONFIG.md), [LITELLM_CONFIG.md](LITELLM_CONFIG.md)
+| Resource | Link |
+|----------|------|
+| Contributing | [docs/community/CONTRIBUTING.md](docs/community/CONTRIBUTING.md) |
+| Code of Conduct | [docs/community/CODE_OF_CONDUCT.md](docs/community/CODE_OF_CONDUCT.md) |
+| Credits | [docs/community/CREDITS.md](docs/community/CREDITS.md) |
+| Changelog | [docs/community/CHANGELOG.md](docs/community/CHANGELOG.md) |
 
-4. **Start FreeLLMAPI**:
+## 📄 License
 
-   ```powershell
-   .\examples\start-freellmapi.ps1
-   ```
-
-5. **Start LiteLLM**:
-
-   ```powershell
-   .\examples\start-litellm.ps1
-   ```
-
-6. **Start Claude Code**:
-   ```powershell
-   .\examples\start-claude.ps1
-   ```
-
-For more details, see the [Installation Guide](guides/02-installation-windows.md).
-
-## Validation
-
-To validate that everything is working correctly, run the provided test prompts and observe the logs.
-
-For more details, see the [Validation Guide](VALIDATION.md).
-
-## Troubleshooting
-
-If you encounter issues, see the [Troubleshooting Guide](TROUBLESHOOTING.md).
-
-## FAQ
-
-For frequently asked questions, see the [FAQ](FAQ.md).
-
-## Security
-
-For security guidelines, see the [Security Guide](SECURITY.md).
-
-## Contributing
-
-For contribution guidelines, see the [Contributing Guide](CONTRIBUTING.md).
-
-## Community/Support
-
-For community support, see the [Community Guide](COMMUNITY.md).
-
-## Credits and References
-
-For credits and references, see the [Credits Guide](CREDITS.md).
+MIT License - see [LICENSE](LICENSE) for details.
